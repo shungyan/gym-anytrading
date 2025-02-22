@@ -15,31 +15,36 @@ class StocksEnv(TradingEnv):
         self.trade_fee_ask_percent = 0.005  # unit
 
     def _process_data(self):
-        open_prices = self.df.loc[:, "Open"].to_numpy()
-        high_prices = self.df.loc[:, "High"].to_numpy()
-        low_prices = self.df.loc[:, "Low"].to_numpy()
-        close_prices = self.df.loc[:, "Close"].to_numpy()
-        volume = self.df.loc[:, "Volume"].to_numpy()
+        # Validate index
+        start_idx = self.frame_bound[0] - self.window_size
+        end_idx = self.frame_bound[1]
 
-        sma_50 = self.df.loc[:, "SMA_50"].to_numpy()
-        ema_50 = self.df.loc[:, "EMA_50"].to_numpy()
-        rsi_14 = self.df.loc[:, "RSI_14"].to_numpy()
-        macd = self.df.loc[:, "MACD"].to_numpy()
-        macd_signal = self.df.loc[:, "MACD_Signal"].to_numpy()
+        if start_idx < 0:
+            raise ValueError("Invalid frame_bound or window_size: index is out of range")
 
-        stochastic_k = self.df.loc[:, "Stochastic_K"].to_numpy()
-        stochastic_d = self.df.loc[:, "Stochastic_D"].to_numpy()
-        upper_bb = self.df.loc[:, "Upper_BB"].to_numpy()
-        lower_bb = self.df.loc[:, "Lower_BB"].to_numpy()
-        adx = self.df.loc[:, "ADX"].to_numpy()
-        obv = self.df.loc[:, "OBV"].to_numpy()
+        # Extract slices for all indicators
+        open_prices = open_prices[start_idx:end_idx]
+        high_prices = high_prices[start_idx:end_idx]
+        low_prices = low_prices[start_idx:end_idx]
+        close_prices = close_prices[start_idx:end_idx]
+        volume = volume[start_idx:end_idx]
 
-        close_prices[self.frame_bound[0] - self.window_size]  # validate index (TODO: Improve validation)
-        close_prices = close_prices[self.frame_bound[0]-self.window_size:self.frame_bound[1]]
+        sma_50 = sma_50[start_idx:end_idx]
+        ema_50 = ema_50[start_idx:end_idx]
+        rsi_14 = rsi_14[start_idx:end_idx]
+        macd = macd[start_idx:end_idx]
+        macd_signal = macd_signal[start_idx:end_idx]
+
+        stochastic_k = stochastic_k[start_idx:end_idx]
+        stochastic_d = stochastic_d[start_idx:end_idx]
+        upper_bb = upper_bb[start_idx:end_idx]
+        lower_bb = lower_bb[start_idx:end_idx]
+        adx = adx[start_idx:end_idx]
+        obv = obv[start_idx:end_idx]
 
         diff = np.insert(np.diff(close_prices), 0, 0)
 
-        signal_features = np.column_stack((open_prices, high_prices, low_prices, close_prices, volume, diff,sma_50, ema_50, rsi_14, macd, macd_signal,stochastic_k, stochastic_d, upper_bb, lower_bb,adx, obv))
+        signal_features = np.column_stack((open_prices, high_prices, low_prices, close_prices, diff, volume,sma_50, ema_50, rsi_14, macd, macd_signal,stochastic_k, stochastic_d, upper_bb, lower_bb,adx, obv))
 
         return close_prices.astype(np.float32), signal_features.astype(np.float32)
 
