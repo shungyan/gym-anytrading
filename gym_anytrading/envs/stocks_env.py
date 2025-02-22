@@ -17,11 +17,24 @@ class StocksEnv(TradingEnv):
     def _process_data(self):
         prices = self.df.loc[:, 'Close'].to_numpy()
 
-        prices[self.frame_bound[0] - self.window_size]  # validate index (TODO: Improve validation)
-        prices = prices[self.frame_bound[0]-self.window_size:self.frame_bound[1]]
+        # Validate index (TODO: Improve validation)
+        prices[self.frame_bound[0] - self.window_size]
+        prices = prices[self.frame_bound[0] - self.window_size : self.frame_bound[1]]
 
         diff = np.insert(np.diff(prices), 0, 0)
-        signal_features = np.column_stack((prices, diff))
+
+        # Select additional features from the DataFrame
+        feature_cols = [
+            "Open", "High", "Low", "Close", "Volume",
+            "SMA_50", "EMA_50", "RSI_14", "MACD", "MACD_Signal",
+            "Stochastic_K", "Stochastic_D", "Upper_BB", "Lower_BB",
+            "ADX", "OBV"
+        ]
+
+        additional_features = self.df.loc[self.frame_bound[0] - self.window_size : self.frame_bound[1], feature_cols].to_numpy()
+
+        # Stack prices, diff, and additional features
+        signal_features = np.column_stack((prices, diff, additional_features))
 
         return prices.astype(np.float32), signal_features.astype(np.float32)
 
