@@ -34,14 +34,14 @@ class StocksEnv(TradingEnv):
         adx = self.df.loc[:, "ADX"].to_numpy()
         obv = self.df.loc[:, "OBV"].to_numpy()
 
-        prices[self.frame_bound[0] - self.window_size]  # validate index (TODO: Improve validation)
-        prices = prices[self.frame_bound[0]-self.window_size:self.frame_bound[1]]
+        close_prices[self.frame_bound[0] - self.window_size]  # validate index (TODO: Improve validation)
+        close_prices = close_prices[self.frame_bound[0]-self.window_size:self.frame_bound[1]]
 
-        diff = np.insert(np.diff(prices), 0, 0)
+        diff = np.insert(np.diff(close_prices), 0, 0)
 
         signal_features = np.column_stack((open_prices, high_prices, low_prices, close_prices, volume, diff,sma_50, ema_50, rsi_14, macd, macd_signal,stochastic_k, stochastic_d, upper_bb, lower_bb,adx, obv))
 
-        return prices.astype(np.float32), signal_features.astype(np.float32)
+        return close_prices.astype(np.float32), signal_features.astype(np.float32)
 
     def _calculate_reward(self, action):
         step_reward = 0
